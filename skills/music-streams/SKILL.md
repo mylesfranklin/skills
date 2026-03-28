@@ -1,6 +1,6 @@
 ---
 name: music-streams
-description: "Analyze streaming intelligence, audience metrics, and audio DNA using Spotify. Use when researching artist popularity, follower counts, audio profiles, release velocity, or artist networks for catalog investment."
+description: "Analyze streaming metrics and catalog composition using Spotify. Use when researching artist followers, popularity scores, discography size, release velocity, top tracks, or label/copyright ownership for catalog investment."
 argument-hint: "[artist name, Spotify URL, Spotify ID, or ISRC]"
 allowed-tools:
   - Bash
@@ -27,16 +27,14 @@ Run TypeScript from `~/spotify-api` via `cd ~/spotify-api && npx tsx -e '<code>'
 
 ## Investigation Pipeline
 
-Once you have an artist Spotify ID, execute in order. Steps 2, 4, and 5 are independent — run them via `Promise.all()` in a single script for speed.
+Once you have an artist Spotify ID, run steps 1-3 in a single script via `Promise.all()` for speed.
 
 1. **Artist Profile** (1 call) — `sdk.artists.get(id)` → name, followers.total, popularity, genres[]
 2. **Top Tracks** (1 call) — `sdk.artists.topTracks(id, 'US')` → up to 10 tracks with popularity, ISRC, explicit flag, duration
-3. **Audio DNA** (1 call) — `sdk.tracks.audioFeatures(trackIds)` → batch all top track IDs → 12 audio metrics each
-4. **Discography Scan** (1-2 calls) — `sdk.artists.albums(id, 'album,single,compilation', undefined, 50, offset)` → paginate at limit 50
-5. **Artist Network** (1 call) — `sdk.artists.relatedArtists(id)` → 20 related artists with followers, popularity, genres
-6. **Album Deep Dive** (1 call) — pick most popular album from step 4, `sdk.albums.get(albumId)` → label, copyrights, UPC
+3. **Discography Scan** (1-2 calls) — `sdk.artists.albums(id, 'album,single,compilation', undefined, 50, offset)` → paginate at limit 50
+4. **Album Deep Dive** (1 call) — pick largest album from step 3, `sdk.albums.get(albumId)` → label, copyrights, UPC
 
-Total: 6-7 API calls per complete investigation.
+Total: 4-5 API calls per complete investigation.
 
 ## Output: Streaming Intelligence Scorecard
 
@@ -60,34 +58,12 @@ Always output this exact format after investigation:
 | Label (Latest) | Label Name |
 | Copyright | © or ℗ holder |
 
-### Audio DNA Profile
-
-| Feature | Mean | Range | Signal |
-|---|---|---|---|
-| Danceability | 0.XX | 0.XX–0.XX | High/Mid/Low |
-| Energy | 0.XX | 0.XX–0.XX | High/Mid/Low |
-| Valence | 0.XX | 0.XX–0.XX | Positive/Neutral/Dark |
-| Acousticness | 0.XX | 0.XX–0.XX | Acoustic/Hybrid/Electronic |
-| Instrumentalness | 0.XX | 0.XX–0.XX | Instrumental/Vocal |
-| Speechiness | 0.XX | 0.XX–0.XX | Spoken/Sung |
-| Tempo | NNN BPM | NNN–NNN | Fast/Mid/Slow |
-| Loudness | -N dB | -N–-N | Loud/Dynamic/Quiet |
-| Liveness | 0.XX | 0.XX–0.XX | Live/Studio |
-| Key/Mode | N Major/Minor | — | Dominant tonality |
-
 ### Top Tracks (Popularity-Ranked)
 
-| # | Track | Pop | ISRC | BPM | Energy | Valence |
+| # | Track | Pop | ISRC | Duration | Album | Released |
 |---|---|---|---|---|---|---|
-| 1 | "Track Name" | NN | USRC... | NNN | 0.XX | 0.XX |
+| 1 | "Track Name" | NN | USRC... | M:SS | Album | YYYY-MM-DD |
 | ... | ... | ... | ... | ... | ... | ... |
-
-### Artist Network (Top 10 by Followers)
-
-| Related Artist | Followers | Popularity | Shared Genres |
-|---|---|---|---|
-| Artist1 | N | NN | genre1, genre2 |
-| ... | ... | ... | ... |
 
 ### Streaming Bull Case
 - [2-3 specific strengths backed by data]
@@ -98,6 +74,7 @@ Always output this exact format after investigation:
 ### Cross-Reference
 - Spotify URL: https://open.spotify.com/artist/{id}
 - Top ISRCs: [list top 3 track ISRCs for MusicBrainz cross-referencing]
+- UPC (top album): [if available]
 
 ### Verdict
 [1-2 sentence streaming-focused investment thesis]
@@ -106,10 +83,9 @@ Always output this exact format after investigation:
 ## Rules
 
 - Always `JSON.stringify(result, null, 2)` intermediate output so you can parse it
-- Batch audio features: `sdk.tracks.audioFeatures([id1, id2, ...])` — one call for all top tracks
 - Paginate albums at `limit: 50` with offset loop
 - On 429 (rate limit): exponential backoff — wait 2s, 4s, 8s, then retry
 - If something 404s or returns empty, note it in the scorecard and move on
 - `topTracks` requires a market parameter — always pass `'US'`
 - For follow-up queries in the same session, build on prior findings — don't re-fetch
-- Audio DNA signals: danceability >0.7 = "High", 0.4-0.7 = "Mid", <0.4 = "Low"; valence >0.6 = "Positive", 0.3-0.6 = "Neutral", <0.3 = "Dark"
+- Wrap each API call in try/catch — graceful degradation over hard failure
