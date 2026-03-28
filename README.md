@@ -7,6 +7,7 @@ A collection of reusable [Claude Code skills](https://docs.anthropic.com/en/docs
 | Skill | Description | Usage |
 |---|---|---|
 | [music-discover](skills/music-discover/) | Search and analyze music catalogs for investment value via MusicBrainz | `/music-discover Radiohead` |
+| [music-streams](skills/music-streams/) | Analyze streaming intelligence, audience metrics, and audio DNA via Spotify | `/music-streams Shaboozey` |
 
 ## Install a Skill
 
@@ -39,7 +40,9 @@ skills/
 └── skills/
     └── <skill-name>/
         ├── SKILL.md        # Skill definition (frontmatter + prompt)
-        └── reference.md    # Supporting docs, API references, examples
+        ├── reference.md    # Supporting docs (flat structure)
+        └── references/     # Supporting docs (directory structure)
+            └── api_reference.md
 ```
 
 ## Creating a New Skill
