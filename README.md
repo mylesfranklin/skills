@@ -4,10 +4,26 @@ A collection of reusable [Claude Code skills](https://docs.anthropic.com/en/docs
 
 ## Available Skills
 
+### Music Intelligence
 | Skill | Description | Usage |
 |---|---|---|
 | [music-discover](skills/music-discover/) | Search and analyze music catalogs for investment value via MusicBrainz | `/music-discover Radiohead` |
 | [music-streams](skills/music-streams/) | Analyze streaming intelligence, audience metrics, and audio DNA via Spotify | `/music-streams Shaboozey` |
+| [music-youtube](skills/music-youtube/) | Analyze YouTube presence and engagement for music catalog investment | `/music-youtube Brent Faiyaz` |
+
+### Polymarket / Blockchain
+| Skill | Description | Usage |
+|---|---|---|
+| [wallet-api](skills/wallet-api/) | Query the Polymarket Wallet Hunter API and AlloyDB (53 endpoints, anomalies, wallets, Kyle Lambda) | `/wallet-api whales` |
+| [goldrush](skills/goldrush/) | GoldRush (Covalent) blockchain data — wallet profiling, cross-chain analysis, streaming surveillance | `/goldrush 0xabc...` |
+
+### Remotion (Programmatic Video)
+| Skill | Description | Usage |
+|---|---|---|
+| [remotion-core](skills/remotion-core/) | Core Remotion framework — compositions, hooks, component patterns | Model-invocable |
+| [remotion-animations](skills/remotion-animations/) | Spring physics, easing, interpolate, transitions, and effects | Model-invocable |
+| [remotion-rendering](skills/remotion-rendering/) | Rendering pipelines, Lambda deployment, CI/CD, and production infrastructure | Model-invocable |
+| [remotion-reference](skills/remotion-reference/) | Analyze YouTube videos as reference for creating Remotion short-form content | `/remotion-reference <youtube-url>` |
 
 ## Install a Skill
 
@@ -21,27 +37,29 @@ git clone --depth 1 https://github.com/mylesfranklin/skills.git /tmp/_skills && 
   rm -rf /tmp/_skills
 ```
 
-Example — install `music-discover`:
+Example — install `wallet-api`:
 
 ```bash
 git clone --depth 1 https://github.com/mylesfranklin/skills.git /tmp/_skills && \
   mkdir -p .claude/skills && \
-  cp -r /tmp/_skills/skills/music-discover .claude/skills/music-discover && \
+  cp -r /tmp/_skills/skills/wallet-api .claude/skills/wallet-api && \
   rm -rf /tmp/_skills
 ```
 
-After installing, the skill is immediately available as a slash command in Claude Code: `/music-discover <query>`.
+After installing, the skill is immediately available as a slash command in Claude Code: `/wallet-api <query>`.
 
 ## Repo Structure
 
 ```
 skills/
 ├── README.md
+├── SCHEMA.md
+├── HANDOFF.md
 └── skills/
     └── <skill-name>/
-        ├── SKILL.md        # Skill definition (frontmatter + prompt)
-        ├── reference.md    # Supporting docs (flat structure)
-        └── references/     # Supporting docs (directory structure)
+        ├── SKILL.md              # Skill definition (frontmatter + prompt)
+        ├── reference.md          # Supporting docs (flat structure)
+        └── references/           # Supporting docs (directory structure)
             └── api_reference.md
 ```
 
@@ -63,7 +81,7 @@ allowed-tools:
 ```
 
 3. Write the prompt body below the frontmatter — this is what Claude executes
-4. Add `reference.md` (optional) for API docs, code snippets, or examples the skill can reference
+4. Add `reference.md` or `references/` (optional) for API docs, code snippets, or examples the skill can reference
 5. Update the table in this README
 
 ## License
