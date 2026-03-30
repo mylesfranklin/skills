@@ -7,9 +7,9 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 **Repo**: `mylesfranklin/skills` (GitHub)
 **Architecture**: Skills-on-live-APIs. The agent IS the product.
 
-## Current State (2026-03-29)
+## Current State (2026-03-30)
 
-### Music Intelligence (4 skills)
+### Music Intelligence (5 skills)
 
 #### `/music-discover` (MusicBrainz)
 - **Status**: Production-ready, fully tested
@@ -51,13 +51,26 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 - **Tested on**: Shaboozey (25 releases, earliest 2018 Republic/UMG, current catalog American Dogwood/EMPIRE independent)
 - **Important**: Dynamic `import()` required — `(async () => { const { DiscogsClient } = await import('@lionralfs/discogs-client'); ... })();`
 
+#### `/music-social` (Last.fm)
+- **Status**: Production-ready
+- **API**: Last.fm API (free, API key only, 5 req/sec rate limit)
+- **SDK**: Direct `fetch()` — zero dependencies. Runtime at `/tmp/lastfm-api/` (tsx + typescript only)
+- **Auth**: `LASTFM_API_KEY` in `~/.claude/settings.json` env
+- **Capabilities**: Artist scrobble counts (total plays + unique listeners), per-track playcounts, per-album playcounts, fanbase stickiness ratio (scrobbles/listener), top-5 concentration analysis, comparable artist benchmarking with match scores, user-applied tags (behavioral genre signal)
+- **Investment signal**: Only free source of actual consumption volume data — closest proxy to streaming revenue. Stickiness ratio identifies dedicated vs casual fanbases.
+- **Output**: Social Intelligence Scorecard (metrics table + top tracks + top albums + comp set + bull/bear/verdict)
+- **Limitation**: Data skews rock/indie/electronic — hip-hop and Latin under-represented
+
 #### Cross-Skill Bridge
 - **MusicBrainz → Spotify**: Spotify URLs in `url-rels` + ISRCs
 - **MusicBrainz → YouTube**: YouTube URLs in `url-rels` — saves 100 quota units
+- **MusicBrainz → Last.fm**: MBIDs shared natively — Last.fm is built on MusicBrainz data
+- **Last.fm → MusicBrainz**: `artist.getinfo` returns MBID directly, zero entity resolution needed
+- **Last.fm → Spotify**: Top track names from Last.fm can be searched via `music-streams` ISRC lookup
 - **YouTube → Labels**: Art Track descriptions contain distributor/label/release date
 - **Discogs → Spotify/MusicBrainz**: Barcodes (UPC/EAN) cross-reference
 - **Discogs → Label Independence**: Label chain traversal definitively answers "is this a major?"
-- **Usage**: Run all 4 skills on same artist, agent holds all scorecards in context
+- **Usage**: Run all 5 skills on same artist, agent holds all scorecards in context
 
 ### Polymarket / Blockchain (2 skills)
 
@@ -89,7 +102,7 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 
 | Pipeline Stage | What It Needs | What We Have | Gap |
 |---|---|---|---|
-| **Stage 1: Revenue ($500K×5yr)** | Stream counts, payout rates | Spotify popularity (proxy), YouTube views | No actual stream counts — need Chartmetric ($320/mo) or Last.fm playcounts (free) |
+| **Stage 1: Revenue ($500K×5yr)** | Stream counts, payout rates | Spotify popularity (proxy), YouTube views, **Last.fm scrobbles (actual playcounts)** | Scrobbles are relative signal (comp-set ranking), not absolute revenue. Still no payout rate data — Chartmetric ($320/mo) for that. |
 | **Stage 2: Catalog Age (≥8yr)** | True original release date | MusicBrainz release-group dates, Discogs circle-P dates | **Covered** |
 | **Stage 3: Independence** | No UMG/Sony/Warner | Discogs label chain, Spotify C&P line, YouTube distributor | **Covered** |
 | **Stage 4: Rights (100% ownership)** | Publishing splits, master rights | Nothing | MLC (applied, waiting), Songview (scrape-only) |
@@ -103,7 +116,7 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 
 | # | Skill | API | Why |
 |---|---|---|---|
-| 1 | `music-social` | Last.fm | Only free source of actual playcount data. Best revenue proxy. |
+| ~~1~~ | ~~`music-social`~~ | ~~Last.fm~~ | **DONE** — production-ready |
 | 2 | Label exclusion matrix | Wikidata SPARQL | Automates Stage 3 at scale. |
 | 3 | `music-lyrics` | Genius | Songwriter metadata. Free. |
 | 4 | `music-live` | Bandsintown | Tour dates, venue capacity. Free. |
@@ -133,6 +146,7 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 | `~/.claude/skills/music-streams/SKILL.md` | Spotify skill prompt |
 | `~/.claude/skills/music-youtube/SKILL.md` | YouTube skill prompt |
 | `~/.claude/skills/music-market/SKILL.md` | Discogs skill prompt |
+| `~/.claude/skills/music-social/SKILL.md` | Last.fm skill prompt |
 | `~/.claude/skills/wallet-api/SKILL.md` | Polymarket Wallet Hunter API |
 | `~/.claude/skills/goldrush/SKILL.md` | GoldRush blockchain data |
 | `~/.claude/skills/remotion-*/SKILL.md` | Remotion video skills |
@@ -140,8 +154,59 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 | `~/spotify-api/` | Spotify SDK |
 | `/tmp/youtube-api/` | YouTube runtime (fetch-based) |
 | `/tmp/discogs-api/` | Discogs runtime (@lionralfs/discogs-client) |
+| `/tmp/lastfm-api/` | Last.fm runtime (fetch-based) |
 | `~/.claude/settings.json` | All API credentials |
 | `SCHEMA.md` | MusicBrainz database schema (22 tables) |
+
+## First Screening Run (2026-03-29)
+
+Ran a full 5-platform screening pipeline. Results exported to `~/Desktop/Catalog_Acquisition_Targets_2026-03-29.pdf`.
+
+**Funnel**: 369 candidates (8 genre verticals via Last.fm `tag.gettopartists`) → 57 in listener sweet spot (50K-2M) → 23 pass catalog age (8+ yr, MusicBrainz) → 18 pass independence (Discogs label chain) → 10 final targets (composite ranking).
+
+**Eliminated for major label**: The Durutti Column (London Records → Universal), Catherine Wheel (Columbia → Sony), Other Lives (PIAS → Universal).
+
+### 10 Acquisition Targets
+
+| # | Artist | Genre | Scrobbles | Stickiness | Spotify | Label | Key Signal |
+|---|---|---|---|---|---|---|---|
+| 1 | Still Corners | Dream Pop | 12.0M | 20.0x | 398K/pop60 | Wrecking Light (own) | Own label, growing remasters |
+| 2 | Skinshape | Trip-Hop | 6.8M | 16.4x | 342K/pop57 | Lewis Recordings | 86M YouTube views (highest) |
+| 3 | Dwele | Neo-Soul | 3.7M | 11.7x | 323K/pop69 | Planet E | Highest Spotify pop despite dormancy |
+| 4 | Lucero | Alt-Country | 8.7M | 39.5x | 112K/pop41 | Liberty & Lament (own) | Highest stickiness, 9.1% concentration |
+| 5 | Cowboy Junkies | Alt-Country | 7.7M | 15.3x | 234K/pop49 | Latent (own) | Largest catalog (346 tracks, 41yr) |
+| 6 | Timber Timbre | Southern Gothic | 8.9M | 19.8x | 232K/pop46 | Arts & Crafts | High sync potential, FACTOR eligible |
+| 7 | The Chameleons | Post-Punk | 12.2M | 24.6x | 186K/pop42 | Cherry Red / Metropolis | Genre revival tailwind, cult classic |
+| 8 | Moonchild | Indie Soul | 3.1M | 13.7x | 291K/pop49 | Self / Tru Thoughts | Self-owned recent, new album Feb 2026 |
+| 9 | Starflyer 59 | Shoegaze | 11.5M | 22.4x | 77K/pop47 | Velvet Blue / Tooth & Nail | Deepest shoegaze catalog (303 tracks) |
+| 10 | 16 Horsepower | Gothic Americana | 9.1M | 32.9x | 80K/pop38 | Glitterhouse / Sargent House | Ended band = fixed catalog, no dilution |
+
+### Due Diligence Flags
+- **Dwele**: E1/eOne rights chain (eOne → Hasbro 2019 → Blackstone 2023). Verify who holds masters.
+- **The Chameleons**: ISRC prefix USIR (Interscope/Universal). May have major-era masters.
+- **16 Horsepower**: ISRC prefix USAM (A&M Records). Verify provenance.
+- **Starflyer 59**: BEC/Capitol Christian copyright on some releases. Verify Velvet Blue vs corporate split.
+- **Cowboy Junkies**: Pre-2000 catalog may have RCA/BMG-era rights. "Sweet Jane" is a Lou Reed cover (mechanicals owed).
+- **Moonchild**: Split between Tru Thoughts (earlier) and self-released (recent). Mixed rights chain.
+
+### Cleanest Targets for Immediate Outreach
+1. **Still Corners** — own label (Wrecking Light), ℗/© both self-held
+2. **Lucero** — own label (Liberty & Lament), ℗/© both self-held
+3. **Cowboy Junkies** — own label (Latent), post-2000 catalog clean
+
+## Alpha Ideas (from screening session)
+
+Patterns discovered during the 369-candidate screening run. These could become automated screeners or new skills:
+
+| # | Idea | Signal | Implementation |
+|---|---|---|---|
+| 1 | **Stickiness ratio screener** | Last.fm scrobbles/listeners ratio identifies catalog loyalty. Lucero 39.5x vs industry avg ~15x | Bulk `artist.getinfo` across genre pools, sort by ratio |
+| 2 | **Scrobble-to-follower gap** | When Last.fm consumption >> Spotify followers (e.g. Starflyer 59: 11.5M/77K), catalog is undervalued by streaming-only analysts | Cross-platform divergence metric |
+| 3 | **Dormant-but-streaming screener** | Dwele: no release since 2012, Spotify pop 69. Catalog discovering new listeners organically | Filter: last release 5+ yr ago AND Spotify pop > 50 |
+| 4 | **ISRC prefix forensics** | ISRC registrant codes (USIR=Interscope, USAM=A&M) reveal historical major involvement even on currently-indie catalogs | Bulk parse `external_ids.isrc` from Spotify, flag major prefixes |
+| 5 | **Copyright line parser** | Spotify `copyrights[]` field: when artist name appears in ℗/© holder, strong self-ownership signal | Automated screener across target list |
+| 6 | **Genre revival arbitrage** | When a genre has modern breakout acts (Fontaines D.C. for post-punk), discovery flows to originals (The Chameleons) | Track genre momentum via Last.fm tag trends, acquire originals before wave |
+| 7 | **Last.fm demographic correction** | Last.fm under-indexes hip-hop/R&B/Latin. Use Spotify as primary signal for those genres, Last.fm for rock/indie/electronic | Genre-aware weighting system across platforms |
 
 ## Skill Architecture Pattern
 
