@@ -7,7 +7,7 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 **Repo**: `mylesfranklin/skills` (GitHub)
 **Architecture**: Skills-on-live-APIs. The agent IS the product.
 
-## Current State (2026-03-30)
+## Current State (2026-04-02)
 
 ### Music Intelligence (5 skills)
 
@@ -207,6 +207,43 @@ Patterns discovered during the 369-candidate screening run. These could become a
 | 5 | **Copyright line parser** | Spotify `copyrights[]` field: when artist name appears in ℗/© holder, strong self-ownership signal | Automated screener across target list |
 | 6 | **Genre revival arbitrage** | When a genre has modern breakout acts (Fontaines D.C. for post-punk), discovery flows to originals (The Chameleons) | Track genre momentum via Last.fm tag trends, acquire originals before wave |
 | 7 | **Last.fm demographic correction** | Last.fm under-indexes hip-hop/R&B/Latin. Use Spotify as primary signal for those genres, Last.fm for rock/indie/electronic | Genre-aware weighting system across platforms |
+
+## Second Screening Run — High-Revenue Tier (2026-04-01)
+
+Screened for catalogs estimated at **$500K+/year revenue**, independent, 8+ year catalog age. Higher bar than first run.
+
+**Funnel**: 443 candidates (10 revenue-dense genre verticals) → 20 top-tier by scrobbles → checked Spotify popularity/followers/label/copyright → Discogs label chain verification → MusicBrainz age confirmation → 5 final targets.
+
+**Eliminated for major label**: Cults (IMPERIAL → Republic → Universal), The Magnetic Fields (Nonesuch → WEA → Warner).
+**Eliminated gray area**: Beach House / Weyes Blood (Sub Pop, 30% Warner-owned).
+**Eliminated age**: Caroline Polachek (solo catalog only 7yr; Chairlift was Columbia/Sony).
+
+### 5 High-Revenue Acquisition Targets
+
+| # | Artist | Genre | Est Revenue | Spotify | Pop | Scrobbles | YT Views | Age | Ownership |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | TV Girl | Indie Pop / Lo-Fi | $3-8M/yr | 14.1M foll | 82 | 289M | 843M | 16yr | Blissful Serenity Industries LLC (own) |
+| 2 | Men I Trust | Dream Pop | $500K-1.5M/yr | 2.4M foll | 69 | 125M | 162M | 12yr | Fully self-released (℗/© "Independent") |
+| 3 | Current Joys | Indie / Dream Pop | $500K-1.5M/yr | 1.9M foll | 69 | 66M | 90M | 13yr | Secretly Canadian (indie) |
+| 4 | Sevdaliza | Art Pop / Trip-Hop | $500K-1.5M/yr | 964K foll | 68 | 31M | 975M | 11yr | Self-owned masters (℗ Sevdaliza) |
+| 5 | FKJ | Nu Jazz / Electronic | $500K-1.5M/yr | 1.7M foll | 64 | 14.8M | 138M | 13yr | Secondtrack (own) + Mom+Pop (recent) |
+
+### Due Diligence Flags (Run 2)
+- **TV Girl**: At $3-8M/yr, acquisition price would be $20-50M at 10-15x. Verify no distribution equity deals.
+- **Current Joys**: Secretly Canadian likely holds some rights. Clarify licensing vs ownership.
+- **FKJ**: Mom+Pop distributed via Virgin Music (Universal). Verify masters ownership vs licensing. Earlier catalog (Secondtrack) is cleanly self-owned.
+- **Sevdaliza**: "broke / Create Music Group" on © line. Clarify publishing split vs master ownership (℗ is clean).
+
+### Revenue Estimation Methodology
+- Spotify pop 80+ ≈ 15-30M monthly listeners ≈ $3-8M/yr (all platforms)
+- Spotify pop 65-75 ≈ 3-7M monthly listeners ≈ $500K-1.5M/yr
+- Assumes Spotify ≈ 60% of total streaming revenue
+- $0.003-0.005/stream blended rate, does not include sync/merch/touring
+
+### Cleanest Targets (Run 2)
+1. **Men I Trust** — fully self-released, copyright literally reads "Independent", no label at all
+2. **TV Girl** — own LLC (Blissful Serenity Industries), all ℗/© self-held
+3. **Sevdaliza** — ℗ self-held, distributed via Create Music Group (indie)
 
 ## Skill Architecture Pattern
 
