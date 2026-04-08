@@ -7,9 +7,9 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 **Repo**: `mylesfranklin/skills` (GitHub)
 **Architecture**: Skills-on-live-APIs. The agent IS the product.
 
-## Current State (2026-04-02)
+## Current State (2026-04-08)
 
-### Music Intelligence (5 skills)
+### Music Intelligence (6 skills)
 
 #### `/music-discover` (MusicBrainz)
 - **Status**: Production-ready, fully tested
@@ -61,6 +61,22 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 - **Output**: Social Intelligence Scorecard (metrics table + top tracks + top albums + comp set + bull/bear/verdict)
 - **Limitation**: Data skews rock/indie/electronic — hip-hop and Latin under-represented
 
+#### `/music-rights` (BMI Songview + ASCAP ACE via Browser Use Cloud)
+- **Status**: Production-ready, live-tested 2026-04-08 (BMI path; ASCAP path opt-in/unreliable)
+- **API**: Browser Use Cloud v3 (stealth Chromium + residential proxies + structured output + deterministic cache scripts)
+- **SDK**: `browser-use-sdk@^3.4.2` + `zod@^4.3.6`. Runtime at `/tmp/browser-use-api/` (tsx + script `music-rights.ts`)
+- **Auth**: `BROWSER_USE_API_KEY` in `~/.claude/settings.json` env
+- **Target sites**: `https://repertoire.bmi.com/` (BMI Songview — reconciled joint ASCAP/BMI/SESAC/GMR database) + `https://www.ascap.com/repertory` (ASCAP ACE — opt-in fallback only)
+- **Capabilities**: Search by song title (optionally with writer disambiguator), extract full writer roster (name, IPI/CAE, role, share_pct, PRO affiliation), full publisher roster (same fields), ISWC (T-XXXXXXXXX-X), BMI Work # / ASCAP Work ID, alt titles, and total writer/publisher share. Parallel BMI + ASCAP fanout with dedup/merge by (name, ipi) keys.
+- **Investment signal**: Closes Stage 4 (rights/ownership) of the acquisition pipeline. BMI Songview is the reconciled joint PRO database — one BMI query typically returns writers from every PRO (ASCAP + BMI + SESAC + GMR) with their IPI numbers. No paid data required (unlike Chartmetric or MLC).
+- **Architecture note**: Browser Use Cloud `cacheScript: true` pins a deterministic replay script to a workspace after the first run. Subsequent calls with the same template shape are designed to replay at ~$0 LLM cost in ~5-10s. Cold cost is ~$0.40–0.50 per BMI call (60–180s). Cache hit reliability depends on template stability — the script uses a single fixed template string with `@{{title}}` and `@{{writer}}` as the only parameters, writer defaults to literal "ANY" when unspecified, and auto-heal is disabled to prevent the judge from invalidating scripts that contain null share_pct fields.
+- **CRITICAL limitation — ASCAP ACE**: `ace-api.ascap.com` is protected by enterprise reCAPTCHA v3 which blocks automated browsers even through stealth + residential proxies. ASCAP calls usually return HTTP 400 or phantom "Nothing matched your search criteria" empty results. **Default `--pro bmi` only**; use `--pro both` only when BMI returns zero hits.
+- **CRITICAL limitation — BMI share percentages**: Songview only displays aggregate "BMI % Controlled" (e.g. 11.67% writers + 11.67% publishers). Individual writer/publisher `share_pct` fields are typically `null`. Capture the aggregate totals, note that per-row splits are not disclosed.
+- **CRITICAL limitation — "Additional Non-BMI Publishers" marker**: When Songview shows this marker, it is aggregating non-BMI publishers behind a single row without individual entries. The publisher list is incomplete in that case — flag it in the bear case.
+- **Workspace pinning**: `MUSIC_RIGHTS_WORKSPACE_ID=1fe077d4-f7a2-4da2-8668-569d8f2ee731` — pinning is essential for cache hits. Do NOT let the script auto-create new workspaces.
+- **Output**: Rights Scorecard (metrics table + writers table + publishers table + alt titles + bull/bear/verdict)
+- **Tested on**: "A Bar Song (Tipsy)" by Shaboozey → 6 writers (5 ASCAP + 1 BMI) with all IPIs, ISWC T-325320993-3, publisher Songs Of Universal Inc (BMI, role E), BMI Work # 67370903, `has_additional_non_bmi_publishers: true` (so publisher list is partial — need ASCAP cross-verify)
+
 #### Cross-Skill Bridge
 - **MusicBrainz → Spotify**: Spotify URLs in `url-rels` + ISRCs
 - **MusicBrainz → YouTube**: YouTube URLs in `url-rels` — saves 100 quota units
@@ -70,7 +86,8 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 - **YouTube → Labels**: Art Track descriptions contain distributor/label/release date
 - **Discogs → Spotify/MusicBrainz**: Barcodes (UPC/EAN) cross-reference
 - **Discogs → Label Independence**: Label chain traversal definitively answers "is this a major?"
-- **Usage**: Run all 5 skills on same artist, agent holds all scorecards in context
+- **Song → Rights**: Take top-track titles from music-streams or music-social → `music-rights --title "..." --writer "..."` → get writer IPIs + ISWC → join back into music-discover works table
+- **Usage**: Run all 6 skills on same artist + top tracks, agent holds all scorecards in context
 
 ### Polymarket / Blockchain (2 skills)
 
@@ -105,23 +122,24 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 | **Stage 1: Revenue ($500K×5yr)** | Stream counts, payout rates | Spotify popularity (proxy), YouTube views, **Last.fm scrobbles (actual playcounts)** | Scrobbles are relative signal (comp-set ranking), not absolute revenue. Still no payout rate data — Chartmetric ($320/mo) for that. |
 | **Stage 2: Catalog Age (≥8yr)** | True original release date | MusicBrainz release-group dates, Discogs circle-P dates | **Covered** |
 | **Stage 3: Independence** | No UMG/Sony/Warner | Discogs label chain, Spotify C&P line, YouTube distributor | **Covered** |
-| **Stage 4: Rights (100% ownership)** | Publishing splits, master rights | Nothing | MLC (applied, waiting), Songview (scrape-only) |
+| **Stage 4: Rights (100% ownership)** | Publishing splits, master rights | **`music-rights` via BMI Songview (writers, publishers, IPIs, ISWC, PRO affiliations)** | Covered for publishing/composition side. Still no payout rate data (Chartmetric $320/mo) and no master-side ownership database (MLC still pending). BMI per-row share % not disclosed — only aggregate BMI-controlled totals. |
 
-## Pending API Access (2026-03-29)
+## Pending API Access (2026-04-08)
 
 - **Deezer deep API** — applied, waiting
-- **MLC (Mechanical Licensing Collective)** — applied, waiting. #1 priority for Stage 4.
+- **MLC (Mechanical Licensing Collective)** — applied, waiting. Would complement music-rights by providing master-side publisher data and per-row share splits.
 
 ## What's Next — Priority Order
 
 | # | Skill | API | Why |
 |---|---|---|---|
-| ~~1~~ | ~~`music-social`~~ | ~~Last.fm~~ | **DONE** — production-ready |
-| 2 | Label exclusion matrix | Wikidata SPARQL | Automates Stage 3 at scale. |
-| 3 | `music-lyrics` | Genius | Songwriter metadata. Free. |
-| 4 | `music-live` | Bandsintown | Tour dates, venue capacity. Free. |
-| 5 | `music-rights` | MLC | Applied, waiting. Enables Stage 4. |
-| 6 | `music-qualify` | Orchestrator | Chains all skills → unified pass/fail + valuation. |
+| ~~1~~ | ~~`music-social`~~ | ~~Last.fm~~ | **DONE** 2026-04-01 |
+| ~~2~~ | ~~`music-rights`~~ | ~~BMI Songview via Browser Use Cloud~~ | **DONE** 2026-04-08 — closes Stage 4 without paid data |
+| 3 | Label exclusion matrix | Wikidata SPARQL | Automates Stage 3 at scale. |
+| 4 | `music-lyrics` | Genius | Songwriter bios/metadata. Free. Complements `music-rights` by providing human-readable writer context. |
+| 5 | `music-live` | Bandsintown | Tour dates, venue capacity. Free. Touring revenue signal. |
+| 6 | `music-qualify` | Orchestrator | Chains all 6 skills → unified pass/fail + valuation. Run on a target list, get auto-ranked scorecards. |
+| 7 | Stickiness screener | Last.fm batch + alpha idea #1 | Bulk scrobbles/listeners across genre pools. Automates the first screening run. |
 
 ## Research Documents (~/Downloads/)
 
@@ -147,6 +165,9 @@ A collection of Claude Code skills across three domains: music intelligence, blo
 | `~/.claude/skills/music-youtube/SKILL.md` | YouTube skill prompt |
 | `~/.claude/skills/music-market/SKILL.md` | Discogs skill prompt |
 | `~/.claude/skills/music-social/SKILL.md` | Last.fm skill prompt |
+| `~/.claude/skills/music-rights/SKILL.md` | BMI Songview + ASCAP ACE skill prompt |
+| `~/.claude/skills/music-rights/music-rights.ts` | Runtime script (Browser Use Cloud v3 + Zod schema + merge logic) — copy to `/tmp/browser-use-api/` on setup |
+| `/tmp/browser-use-api/` | Browser Use Cloud runtime (browser-use-sdk + tsx + zod) |
 | `~/.claude/skills/wallet-api/SKILL.md` | Polymarket Wallet Hunter API |
 | `~/.claude/skills/goldrush/SKILL.md` | GoldRush blockchain data |
 | `~/.claude/skills/remotion-*/SKILL.md` | Remotion video skills |
