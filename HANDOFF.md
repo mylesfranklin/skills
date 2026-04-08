@@ -1,5 +1,18 @@
 # Claude Code Skills — Handoff
 
+> ## ⚠️ Music skills moved 2026-04-08
+>
+> All six `music-*` skills (`music-discover`, `music-streams`, `music-youtube`,
+> `music-market`, `music-social`, `music-rights`) now live in a dedicated repo:
+> **https://github.com/mylesfranklin/music-data**
+>
+> The current handoff for the music intelligence stack is at
+> https://github.com/mylesfranklin/music-data/blob/main/HANDOFF.md
+>
+> This file is preserved as the handoff for the **non-music** skills in this
+> repo (`wallet-api`, `goldrush`, `remotion-*`). The music sections below are
+> historical and will not be updated.
+
 ## What This Is
 
 A collection of Claude Code skills across three domains: music intelligence, blockchain/prediction markets, and programmatic video. Each skill wraps a live API, runs autonomously via `/skill-name <query>`, and produces actionable output. No shared infrastructure — skills call APIs directly.

@@ -4,12 +4,18 @@ A collection of reusable [Claude Code skills](https://docs.anthropic.com/en/docs
 
 ## Available Skills
 
-### Music Intelligence
-| Skill | Description | Usage |
-|---|---|---|
-| [music-discover](skills/music-discover/) | Search and analyze music catalogs for investment value via MusicBrainz | `/music-discover Radiohead` |
-| [music-streams](skills/music-streams/) | Analyze streaming intelligence, audience metrics, and audio DNA via Spotify | `/music-streams Shaboozey` |
-| [music-youtube](skills/music-youtube/) | Analyze YouTube presence and engagement for music catalog investment | `/music-youtube Brent Faiyaz` |
+### Music Intelligence — MOVED
+
+> All six music-* skills have moved to a dedicated repo:
+> **https://github.com/mylesfranklin/music-data**
+>
+> The old `skills/music-{discover,streams,youtube,market,social,rights}/` directories
+> in this repo are preserved as historical artifacts but no longer maintained.
+> Each contains a `DEPRECATED.md` pointing to the new location.
+>
+> The new repo bundles all 6 skills with shared docs (4-stage pipeline, cross-skill
+> bridges, alpha ideas, screening runs), an idempotent runtime bootstrap script,
+> and an end-to-end smoke test. See its README for the install flow.
 
 ### Polymarket / Blockchain
 | Skill | Description | Usage |
