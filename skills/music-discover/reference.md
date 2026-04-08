@@ -1,6 +1,26 @@
 # MusicBrainz API Reference — Music Discovery Skill
 
-Copy-paste these blocks. Run from `/home/user/musicbrainz-api` via `npx tsx -e '(async () => { ...code... })();'`.
+Copy-paste these blocks. Run from `/tmp/musicbrainz-api` via `npx tsx -e '(async () => { ...code... })();'`.
+
+## Runtime setup (one-time per /tmp wipe)
+
+```bash
+# Clone the SDK source repo and BUILD the lib/ dir.
+# The SDK's package.json exports point to lib/*.js which only exist after compile.
+gh repo clone mylesfranklin/musicbrainz-api /tmp/musicbrainz-api
+cd /tmp/musicbrainz-api && npm install
+npm run compile-lib:prod   # ← REQUIRED. Errors in test deps are harmless.
+# Verify: `ls lib/entry-node.js` should exist.
+
+# Smoke test:
+npx tsx -e 'import { MusicBrainzApi } from "musicbrainz-api"; \
+  const mb = new MusicBrainzApi({ appName:"t", appVersion:"1.0", appContactInfo:"t@t" }); \
+  mb.search("artist",{query:"Shaboozey"}).then(r => console.log(r.artists[0].name));'
+```
+
+Both import styles work after build:
+- `import { MusicBrainzApi } from "musicbrainz-api"` (via package.json exports)
+- `const { MusicBrainzApi } = await import("./lib/entry-node.js")` (direct file)
 
 ## Init (prefix every script)
 
